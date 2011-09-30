@@ -14,7 +14,7 @@ The following methods are available from this class.
 
 =cut
 
-use Moose;
+use Moose -traits => ['SimpleDB::Class::Item::Meta'];
 use UUID::Tiny;
 use SimpleDB::Class::Types ':all';
 use Sub::Name ();
