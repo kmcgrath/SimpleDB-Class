@@ -45,7 +45,7 @@ sub BUILD {
         lazy    => 1,
         default => sub {
                 my $self = shift;
-                my $id = $attribute;
+                my $id = $self->$attribute;
                 return undef unless ($id ne '');
                 my %find_options;
                 if ($mate) {

@@ -28,6 +28,15 @@ has 'consistent' => (
     default => 0,
 );
 
+
+has 'cascade_delete' => (
+    is      => 'ro',
+    isa     => 'Bool',
+    default => 0,
+
+);
+
+
 sub BUILD {
     my $self = shift;
     my $meta_class   = $self->meta_class;
@@ -35,8 +44,9 @@ sub BUILD {
     my $mate         = $self->mate;
     my $attribute    = $self->target_attribute;
     my $target_class = $self->target_class;
+    my $method_name  = $self->method_name;
    
-    $meta_class->add_method($self->method_name, sub {
+    $meta_class->add_method($method_name, sub {
         my ($self, %sub_options) = @_;
         my %search_options = (
             where => {$attribute => $self->id},
@@ -64,6 +74,18 @@ sub BUILD {
         }
         return $self->simpledb->domain($target_class)->search(%search_options);
     });
+
+
+    if ($self->cascade_delete) {
+        $meta_class->add_before_method_modifier('delete', sub {
+            my $self = shift;
+            my $rs = $self->$method_name;
+            while (my $item = $rs->next) {
+                $item->delete;
+            }
+        });
+
+   }
 }
 
 
