@@ -26,6 +26,7 @@ has 'relationship_class_map' => (
     default => sub {
         {
           'one to many' => 'SimpleDB::Class::Item::Meta::Relationship::OneToMany',
+          'many to one' => 'SimpleDB::Class::Item::Meta::Relationship::ManyToOne',
         }
     },
 
@@ -40,16 +41,19 @@ sub set_relationship {
     my %args = @_;
 
     foreach my $rel (keys %args) {
-        my $class = $self->get_relationship_class($rel);
-        #my %map;
-        if ($class) {
-            Class::MOP::load_class($class);
-            my $rel_obj = $class->new(meta_class=>$self, %{$args{$rel}});
-            if ($rel_obj) {
-                #$map{$rel_obj->method_name} = $rel_obj;
-                $self->_set_relationship($rel_obj->method_name => $rel_obj);
+        my $type = delete $args{$rel}{type};
+        if ($type) {
+            my $class = $self->get_relationship_class($type);
+            #my %map;
+            if ($class) {
+                Class::MOP::load_class($class);
+                my $rel_obj = $class->new(meta_class=>$self, method_name=>$rel, %{$args{$rel}});
+                if ($rel_obj) {
+                    #$map{$rel_obj->method_name} = $rel_obj;
+                    $self->_set_relationship($rel => $rel_obj);
+                }
+                #$self->_set_relationships(\%map); 
             }
-            #$self->_set_relationships(\%map); 
         }
     }
 
